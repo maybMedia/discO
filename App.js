@@ -5,7 +5,8 @@ import { AppRegistry } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 
 import ImageViewer from './components/ImageViewer';
-import { Button } from 'react-native-paper';
+import { Button, IconButton, MD3Colors } from 'react-native-paper';
+import { green300 } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
 
 const PlaceHolderImage = 'https://docs.expo.dev/static/images/tutorial/background-image.png';
 
@@ -18,15 +19,20 @@ export default function App() {
         </View>
         <View style={styles.buttonsContainer}>
           <View style={styles.buttonsRow}>
-            <Button icon='emoticon-happy' mode="contained" onPress={() => console.log('Pressed')} compact='true' style={{
+            {/* <Button icon='emoticon-happy' mode="contained" onPress={() => console.log('Pressed')} compact='false' style={{
               margin: 10,
             }}>Like</Button>
-            <Button icon='emoticon-neutral' mode="contained" onPress={() => console.log('Pressed')} compact='true' style={{
+            <Button icon='emoticon-neutral' mode="contained" onPress={() => console.log('Pressed')} compact='false' style={{
               margin: 10,
             }}>Neutral</Button>
-            <Button icon='emoticon-sad' mode="contained" onPress={() => console.log('Pressed')} compact='true' style={{
+            <Button icon='emoticon-sad' mode="contained" onPress={() => console.log('Pressed')} compact='false' style={{
               margin: 10,
-            }}>Dislike</Button>
+            }}>Dislike</Button> */}
+
+            {/* <IconButton icon='emoticon-happy' iconColor={green300} size={40} onPress={() => console.log('Pressed')} style={{
+              margin: 10,
+            }}></IconButton> */}
+
           </View>
         </View>
         <StatusBar style='auto'/>
