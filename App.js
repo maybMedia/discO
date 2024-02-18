@@ -1,18 +1,37 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Image } from 'react-native';
+import * as React from 'react';
+import { AppRegistry } from 'react-native';
+import { PaperProvider } from 'react-native-paper';
 
 import ImageViewer from './components/ImageViewer';
+import { Button } from 'react-native-paper';
 
 const PlaceHolderImage = 'https://docs.expo.dev/static/images/tutorial/background-image.png';
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <View style={styles.imageContainer}>
-        <ImageViewer placeholderImageSource={{uri: PlaceHolderImage}} />
+    <PaperProvider>
+      <View style={styles.container}>
+        <View style={styles.imageContainer}>
+          <ImageViewer placeholderImageSource={{uri: PlaceHolderImage}} />
+        </View>
+        <View style={styles.buttonsContainer}>
+          <View style={styles.buttonsRow}>
+            <Button icon='emoticon-happy' mode="contained" onPress={() => console.log('Pressed')} compact='true' style={{
+              margin: 10,
+            }}>Like</Button>
+            <Button icon='emoticon-neutral' mode="contained" onPress={() => console.log('Pressed')} compact='true' style={{
+              margin: 10,
+            }}>Neutral</Button>
+            <Button icon='emoticon-sad' mode="contained" onPress={() => console.log('Pressed')} compact='true' style={{
+              margin: 10,
+            }}>Dislike</Button>
+          </View>
+        </View>
+        <StatusBar style='auto'/>
       </View>
-      <StatusBar style="auto" />
-    </View>
+    </PaperProvider>
   );
 }
 
@@ -25,5 +44,13 @@ const styles = StyleSheet.create({
   imageContainer: {
     flex: 1,
     paddingTop: 58,
+  },
+  buttonsContainer: {
+    position: 'absolute',
+    bottom: 80,
+  },
+  buttonsRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
   },
 });
