@@ -16,6 +16,7 @@ export default function App() {
         <View style={styles.songDataContainer}>
           <ImageViewer placeholderImageSource={{uri: PlaceHolderImage}} />
         </View>
+        
         <View style={styles.buttonsContainer}>
           <View style={styles.buttonsRow}>
             {/* <Button icon='emoticon-happy' mode="contained" onPress={() => console.log('Pressed')} compact='false' style={{
@@ -28,18 +29,20 @@ export default function App() {
               margin: 10,
             }}>Dislike</Button> */}
 
-            <IconButton icon='emoticon-happy' iconColor='white' size={80} onPress={() => console.log('Pressed')} style={{
-              margin: 10,
-            }}></IconButton>
+            <View style={styles.buttonBg}>
+              <IconButton icon='emoticon-sad' iconColor='white' size={80} onPress={() => console.log('Pressed')} style={{
+                margin: 10,
+              }}></IconButton>
+            </View>
             <IconButton icon='emoticon-neutral' iconColor='white' size={80} onPress={() => console.log('Pressed')} style={{
               margin: 10,
             }}></IconButton>
-            <IconButton icon='emoticon-sad' iconColor='white' size={80} onPress={() => console.log('Pressed')} style={{
+            <IconButton icon='emoticon-happy' iconColor='white' size={80} onPress={() => console.log('Pressed')} style={{
               margin: 10,
             }}></IconButton>
-
           </View>
         </View>
+
         <StatusBar style='auto'/>
       </View>
     </PaperProvider>
@@ -49,12 +52,16 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    paddingTop: 58,
     backgroundColor: '#25292e',
     alignItems: 'center',
   },
   songDataContainer: {
     flex: 1,
-    paddingTop: 58,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: 20,
+    maxHeight: '70%',
+    padding: 10,
   },
   buttonsContainer: {
     position: 'absolute',
@@ -65,5 +72,12 @@ const styles = StyleSheet.create({
   buttonsRow: {
     alignItems: 'center',
     flexDirection: 'row',
+  },
+  buttonBg: {
+    padding: 0,
+    // background: 'linear-gradient(to bottom, #001A4B, #566279)',
+    // backgroundColor: 'linear-gradient(to bottom, #001A4B, #566279)',
+    backgroundColor: '#566279',
+    borderRadius: 100,
   },
 });
