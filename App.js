@@ -6,7 +6,6 @@ import { PaperProvider } from 'react-native-paper';
 
 import ImageViewer from './components/ImageViewer';
 import { Button, IconButton, MD3Colors } from 'react-native-paper';
-import { green300 } from 'react-native-paper/lib/typescript/styles/themes/v2/colors';
 
 const PlaceHolderImage = 'https://docs.expo.dev/static/images/tutorial/background-image.png';
 
@@ -14,7 +13,7 @@ export default function App() {
   return (
     <PaperProvider>
       <View style={styles.container}>
-        <View style={styles.imageContainer}>
+        <View style={styles.songDataContainer}>
           <ImageViewer placeholderImageSource={{uri: PlaceHolderImage}} />
         </View>
         <View style={styles.buttonsContainer}>
@@ -29,9 +28,15 @@ export default function App() {
               margin: 10,
             }}>Dislike</Button> */}
 
-            {/* <IconButton icon='emoticon-happy' iconColor={green300} size={40} onPress={() => console.log('Pressed')} style={{
+            <IconButton icon='emoticon-happy' iconColor='white' size={80} onPress={() => console.log('Pressed')} style={{
               margin: 10,
-            }}></IconButton> */}
+            }}></IconButton>
+            <IconButton icon='emoticon-neutral' iconColor='white' size={80} onPress={() => console.log('Pressed')} style={{
+              margin: 10,
+            }}></IconButton>
+            <IconButton icon='emoticon-sad' iconColor='white' size={80} onPress={() => console.log('Pressed')} style={{
+              margin: 10,
+            }}></IconButton>
 
           </View>
         </View>
@@ -47,13 +52,15 @@ const styles = StyleSheet.create({
     backgroundColor: '#25292e',
     alignItems: 'center',
   },
-  imageContainer: {
+  songDataContainer: {
     flex: 1,
     paddingTop: 58,
   },
   buttonsContainer: {
     position: 'absolute',
     bottom: 80,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: 100,
   },
   buttonsRow: {
     alignItems: 'center',
