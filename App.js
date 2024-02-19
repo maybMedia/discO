@@ -1,20 +1,22 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, Image } from 'react-native';
 import * as React from 'react';
-import { AppRegistry } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import ImageViewer from './components/ImageViewer';
-import { Button, IconButton, MD3Colors } from 'react-native-paper';
+import PrefButton from './components/PrefButton';
 
-const PlaceHolderImage = 'https://docs.expo.dev/static/images/tutorial/background-image.png';
+import { Button, IconButton } from 'react-native-paper';
+
+const albumImage = 'https://upload.wikimedia.org/wikipedia/en/3/3b/Dark_Side_of_the_Moon.png';
 
 export default function App() {
   return (
     <PaperProvider>
       <View style={styles.container}>
         <View style={styles.songDataContainer}>
-          <ImageViewer placeholderImageSource={{uri: PlaceHolderImage}} />
+          <ImageViewer imageSource={{uri: albumImage}} />
         </View>
         
         <View style={styles.buttonsContainer}>
@@ -29,17 +31,21 @@ export default function App() {
               margin: 10,
             }}>Dislike</Button> */}
 
-            <View style={styles.buttonBg}>
+            {/* <LinearGradient 
+              colors={['#001A4B', '#566279']} 
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.buttonBg}>
               <IconButton icon='emoticon-sad' iconColor='white' size={80} onPress={() => console.log('Pressed')} style={{
-                margin: 10,
+                // // backgroundColor: '#566279',
+                // borderRadius: 100,
               }}></IconButton>
-            </View>
-            <IconButton icon='emoticon-neutral' iconColor='white' size={80} onPress={() => console.log('Pressed')} style={{
-              margin: 10,
-            }}></IconButton>
-            <IconButton icon='emoticon-happy' iconColor='white' size={80} onPress={() => console.log('Pressed')} style={{
-              margin: 10,
-            }}></IconButton>
+            </LinearGradient> */}
+
+            <PrefButton start={{x: 0, y: 0}} end={{x: 1, y:1}} icon={'emoticon-sad'} onPress={() => console.log('Pressed')}></PrefButton>
+            <PrefButton start={{x: 0.5, y: 0}} end={{x: 0.5, y:1}} icon={'emoticon-neutral'} onPress={() => console.log('Pressed')}></PrefButton>
+            <PrefButton start={{x: 1, y: 0}} end={{x: 0, y:1}} icon={'emoticon-happy'} onPress={() => console.log('Pressed')}></PrefButton>
+
           </View>
         </View>
 
@@ -60,24 +66,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
     borderRadius: 20,
-    maxHeight: '70%',
+    height: '70%',
+    maxHeight: 580,
+    width: '90%',
+    maxWidth: 410,
     padding: 10,
+    alignItems: 'center',
   },
   buttonsContainer: {
     position: 'absolute',
-    bottom: 80,
+    bottom: 40,
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
     borderRadius: 100,
+    width: '90%',
+    maxWidth: 410,
   },
   buttonsRow: {
     alignItems: 'center',
     flexDirection: 'row',
-  },
-  buttonBg: {
-    padding: 0,
-    // background: 'linear-gradient(to bottom, #001A4B, #566279)',
-    // backgroundColor: 'linear-gradient(to bottom, #001A4B, #566279)',
-    backgroundColor: '#566279',
-    borderRadius: 100,
+    justifyContent: 'space-between',
   },
 });

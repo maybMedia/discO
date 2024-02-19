@@ -1,15 +1,19 @@
 import { StyleSheet, Image } from 'react-native';
 
-export default function ImageViewer({ placeholderImageSource }) {
+const blurHash = 'UICi{zRl~qt6t7WCaxj@_3xZWCWVM|t5kCWC'
+
+export default function ImageViewer({ imageSource }) {
   return (
-    <Image source={placeholderImageSource} style={styles.image} />
+    <Image source={imageSource} placeholder={blurHash} transition={1000} contentFit="cover" style={styles.image} />
   );
 }
 
 const styles = StyleSheet.create({
   image: {
-    width: 350,
-    height: 350,
+    width: '98%',
+    maxWidth: 380,
+    aspectRatio: '1',
     borderRadius: 18,
+    marginHorizontal: 'auto',
   },
 });
