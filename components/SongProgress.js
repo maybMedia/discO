@@ -18,7 +18,7 @@ export default function SongProgress({ progress, bgColor, fillColor }) {
 
     return(
         <View style={parentView}>
-            <View style={[childView, { width: progress }]}/>
+            <View style={[childView, { width: progress+'%' }]}/>
         </View>
     );
 }

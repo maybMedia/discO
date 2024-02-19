@@ -33,7 +33,7 @@ export default function App() {
           <Text id='artist' style={styles.songArtist}>Pink Floyd</Text>
 
           <View style={styles.songProgressContainer}>
-            <SongProgress style={styles.songProgress} progress={'37%'} bgColor={'#353535'} fillColor={'#ffffff'}></SongProgress>
+            <SongProgress style={styles.songProgress} progress={37} bgColor={'#353535'} fillColor={'rgba(255, 255, 255, 0.7)'}></SongProgress>
           </View>
           <View style={styles.songProgressLabels}>
             <Text id='songCompleted' style={styles.songProgText}>1:45</Text>

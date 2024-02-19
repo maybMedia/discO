@@ -10,7 +10,7 @@ export default function PrefButton({ start, end, icon, onPress}) {
               start={start}
               end={end}
               style={styles.buttonBg}>
-              <IconButton icon={icon} iconColor='white' size={70} onPress={onPress} style={{
+              <IconButton icon={icon} iconColor='white' size={60} onPress={onPress} style={{
                 // // backgroundColor: '#566279',
                 // borderRadius: 100,
               }}></IconButton>
