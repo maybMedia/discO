@@ -8,7 +8,7 @@ import ImageViewer from './components/ImageViewer';
 import PrefButton from './components/PrefButton';
 import SongProgress from './components/SongProgress';
 
-// import { ProgressBar } from 'react-native-paper';
+import { Icon } from 'react-native-paper';
 
 const albumImage = 'https://upload.wikimedia.org/wikipedia/en/3/3b/Dark_Side_of_the_Moon.png';
 const backgroundImage = './assets/background.svg'
@@ -39,6 +39,17 @@ export default function App() {
           <View style={styles.songProgressLabels}>
             <Text id='songCompleted' style={styles.songProgText}>1:45</Text>
             <Text id='songRemaining' style={styles.songProgText}>-4:38</Text>
+          </View>
+
+          <View style={styles.statsContainer}>
+            <View style={styles.infoContainer}>
+              <Icon style={styles.statsIcon} size={20} source='album'></Icon>
+              <Text style={styles.statsText}>The Dark Side Of The Moon</Text>
+            </View>
+            <View style={styles.infoContainer}>
+              <Icon style={styles.statsIcon} size={20} source='calendar'></Icon>
+              <Text style={styles.statsText}>1973</Text>
+            </View>
           </View>
 
         </View>
@@ -124,5 +135,18 @@ const styles = StyleSheet.create({
   songProgText: {
     fontFamily: 'Gafata_400Regular',
     fontSize: 12,
+  },
+  statsContainer: {
+    width: '90%',
+    margin: 10,
+  },
+  infoContainer: {
+    flexDirection: 'row',
+    justifyContent: 'left',
+  },
+  statsIcon: {
+  },
+  statsText: {
+    marginLeft: 4,
   },
 });
