@@ -18,7 +18,7 @@
     "@gluestack-ui/themed": "^1.1.8",
     "@mui/material": "^5.15.10",
     "cocoapods": "^0.0.0",
-    "expo": "~50.0.6",
+    "expo": "~50.0.7",
     "expo-font": "~11.10.3",
     "expo-linear-gradient": "~12.7.2",
     "expo-status-bar": "~1.11.1",
@@ -31,7 +31,9 @@
     "react-native-svg": "9.13.6",
     "react-native-ui-lib": "^7.16.0",
     "react-native-vector-icons": "^10.0.3",
-    "react-native-web": "~0.19.6"
+    "react-native-web": "~0.19.6",
+    "expo-asset": "~9.0.2",
+    "expo-dev-client": "~3.3.8"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

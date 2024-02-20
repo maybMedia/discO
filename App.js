@@ -7,13 +7,17 @@ import { useFonts, Gafata_400Regular } from '@expo-google-fonts/gafata';
 import ImageViewer from './components/ImageViewer';
 import PrefButton from './components/PrefButton';
 import SongProgress from './components/SongProgress';
+import MediaControl from './components/MediaButton';
 
-import { Icon } from 'react-native-paper';
+import { Icon, SegmentedButtons } from 'react-native-paper';
 
 const albumImage = 'https://upload.wikimedia.org/wikipedia/en/3/3b/Dark_Side_of_the_Moon.png';
-const backgroundImage = './assets/background.svg'
+const bg = require('./assets/background.svg');
 
 export default function App() {
+
+  const [playbackStatus, setPlaybackStatus] = React.useState(true);
+  const [segmentValue, setSegmentValue] = React.useState('home');
 
   let [fontsLoaded, fontError] = useFonts({
     Gafata_400Regular,
@@ -25,7 +29,42 @@ export default function App() {
 
   return (
     <PaperProvider>
-      <ImageBackground source={{ uri: backgroundImage }} style={styles.container}>
+      <ImageBackground source={bg} style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.pageTitle}>Discover</Text>
+          <SegmentedButtons
+            style={styles.segmentSelector}
+            value={segmentValue}
+            onValueChange={setSegmentValue}
+            density='medium'
+            theme={{
+              colors: {
+                secondaryContainer: '#E5F1FF'
+              }
+            }}
+            buttons={[
+              // {
+              //   value:"social",
+              //   //label: "Social",
+              //   icon: "account-supervisor-circle",
+              //   onPress: () => {console.log("Social Tab")},
+              // },
+              {
+                value:"home",
+                //label: "Discover",
+                icon: "music-circle-outline",
+                onPress: () => {console.log("Discover Tab")},
+              },
+              {
+                value:"profile",
+                //label: "You",
+                icon: 'face-man-profile',
+                onPress: () => {console.log("Your Profile Tab")},
+              },
+            ]}
+          ></SegmentedButtons>
+        </View>
+
         <View style={styles.songDataContainer}>
 
           <ImageViewer imageSource={{uri: albumImage}} />
@@ -52,6 +91,14 @@ export default function App() {
             </View>
           </View>
 
+          <View style={styles.mediaControls}>
+            <MediaControl icon={'step-backward-2'} onPress={() => console.log('Go Back')}></MediaControl>
+            <MediaControl icon={playbackStatus ? 'pause' : 'play'} onPress={() => {
+              playbackStatus ? setPlaybackStatus(false) : setPlaybackStatus(true)
+            }}></MediaControl>
+            <MediaControl icon={'step-backward'} onPress={() => console.log('Go to start')}></MediaControl>
+          </View>
+
         </View>
         
         <View style={styles.buttonsContainer}>
@@ -76,22 +123,23 @@ const styles = StyleSheet.create({
     paddingTop: 58,
     backgroundColor: '#25292e',
     alignItems: 'center',
+    height: '100%',
   },
   songDataContainer: {
     flex: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
     borderRadius: 20,
     height: '70%',
-    maxHeight: 580,
+    maxHeight: 560,
     width: '90%',
-    maxWidth: 410,
+    maxWidth: 380,
     padding: 10,
     alignItems: 'center',
     // overflow: 'hidden',
   },
   buttonsContainer: {
     position: 'absolute',
-    bottom: 40,
+    bottom: 30,
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
     borderRadius: 100,
     width: '90%',
@@ -145,8 +193,36 @@ const styles = StyleSheet.create({
     justifyContent: 'left',
   },
   statsIcon: {
+    color: '#353535',
   },
   statsText: {
     marginLeft: 4,
+    fontFamily: 'Gafata_400Regular',
+    fontSize: 16,
+  },
+  mediaControls: {
+    flexDirection: 'row',
+    marginHorizontal: 'auto',
+  },
+  header: {
+    width: '85%',
+    maxWidth: 320,
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  pageTitle: {
+    fontFamily: 'Gafata_400Regular',
+    fontSize: 42,
+    color: '#ffffff',
+    textAlign: 'left',
+    width: '50%',
+  },
+  segmentSelector: {
+    width: '50%',
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    borderRadius: 50,
+    height: 30,
+    marginLeft: 5,
   },
 });

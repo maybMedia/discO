@@ -11,7 +11,7 @@ export default function ImageViewer({ imageSource }) {
 const styles = StyleSheet.create({
   image: {
     width: '98%',
-    maxWidth: 380,
+    maxWidth: 320,
     aspectRatio: '1',
     borderRadius: 18,
     marginHorizontal: 'auto',

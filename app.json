@@ -25,10 +25,21 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "build": { "babel": { "include": [ "@ui-kitten/components" ] } }
+      "build": {
+        "babel": {
+          "include": [
+            "@ui-kitten/components"
+          ]
+        }
+      }
     },
     "plugins": [
       "expo-font"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "6829261c-16a2-4f4d-b161-7b5b963805a5"
+      }
+    }
   }
 }
