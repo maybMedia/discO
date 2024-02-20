@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Image } from 'react-native';
+import { StyleSheet, Text, View, ImageBackground } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import { useFonts, Gafata_400Regular } from '@expo-google-fonts/gafata';
 
@@ -11,6 +11,7 @@ import SongProgress from './components/SongProgress';
 // import { ProgressBar } from 'react-native-paper';
 
 const albumImage = 'https://upload.wikimedia.org/wikipedia/en/3/3b/Dark_Side_of_the_Moon.png';
+const backgroundImage = './assets/background.svg'
 
 export default function App() {
 
@@ -24,7 +25,7 @@ export default function App() {
 
   return (
     <PaperProvider>
-      <View style={styles.container}>
+      <ImageBackground source={{ uri: backgroundImage }} style={styles.container}>
         <View style={styles.songDataContainer}>
 
           <ImageViewer imageSource={{uri: albumImage}} />
@@ -53,7 +54,7 @@ export default function App() {
         </View>
 
         <StatusBar style='auto'/>
-      </View>
+      </ImageBackground>
     </PaperProvider>
   );
 }
