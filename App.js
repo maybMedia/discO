@@ -1,3 +1,6 @@
+//bMay
+//The main page for the discO song preference generator app. Provides users with an interface between their listening habits and the songs they want to listen to and discover by feeding them with potentially enjoyable songs for their taste.
+
 import * as React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, ImageBackground } from 'react-native';
