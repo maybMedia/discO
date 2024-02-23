@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     height: '70%',
     maxHeight: 560,
     width: '90%',
-    maxWidth: 380,
+    maxWidth: 340,
     padding: 10,
     alignItems: 'center',
     // overflow: 'hidden',
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
     borderRadius: 100,
     width: '90%',
-    maxWidth: 410,
+    maxWidth: 340,
   },
   buttonsRow: {
     alignItems: 'center',
