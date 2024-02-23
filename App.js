@@ -18,6 +18,7 @@ export default function App() {
 
   const [playbackStatus, setPlaybackStatus] = React.useState(true);
   const [segmentValue, setSegmentValue] = React.useState('home');
+  const [songProgress, setSongProgress] = React.useState(37);
 
   let [fontsLoaded, fontError] = useFonts({
     Gafata_400Regular,
@@ -73,7 +74,7 @@ export default function App() {
           <Text id='artist' style={styles.songArtist}>Pink Floyd</Text>
 
           <View style={styles.songProgressContainer}>
-            <SongProgress style={styles.songProgress} progress={37} bgColor={'#353535'} fillColor={'rgba(255, 255, 255, 0.7)'}></SongProgress>
+            <SongProgress style={styles.songProgress} progress={songProgress} bgColor={'rgba(255, 255, 255, 0.25)'} fillColor={'#001A4B'}></SongProgress>
           </View>
           <View style={styles.songProgressLabels}>
             <Text id='songCompleted' style={styles.songProgText}>1:45</Text>
