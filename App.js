@@ -42,7 +42,7 @@ export default function App() {
     <PaperProvider>
       <ImageBackground source={bg} style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.pageTitle}>Discover</Text>
+          <Text style={styles.pageTitle}>discOver</Text>
           {/* <SegmentedButtons
             style={styles.segmentSelector}
             value={segmentValue}
