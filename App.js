@@ -1,42 +1,49 @@
 //bMay
 //The main page for the discO song preference generator app. Provides users with an interface between their listening habits and the songs they want to listen to and discover by feeding them with potentially enjoyable songs for their taste.
 
+//The imported libraries used are below. This includes the built in libraries from React and Expo, along with the component library I used and the font.
 import * as React from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, ImageBackground } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import { useFonts, Gafata_400Regular } from '@expo-google-fonts/gafata';
 
+//Imports for the components I made.
 import ImageViewer from './components/ImageViewer';
 import PrefButton from './components/PrefButton';
 import SongProgress from './components/SongProgress';
 import MediaControl from './components/MediaButton';
 
+//Import the specific components I need from the component library.
 import { Icon, SegmentedButtons } from 'react-native-paper';
 
-const albumImage = 'https://upload.wikimedia.org/wikipedia/en/3/3b/Dark_Side_of_the_Moon.png';
-const bg = require('./assets/background.svg');
+const albumImage = 'https://upload.wikimedia.org/wikipedia/en/3/3b/Dark_Side_of_the_Moon.png'; //Loads the placeholder album image from the web server.
+const bg = require('./assets/background.svg'); //Loads the background from file.
 
+//The program which is compiled and displayed by the browser or app view.
 export default function App() {
 
-  const [playbackStatus, setPlaybackStatus] = React.useState(true);
-  const [segmentValue, setSegmentValue] = React.useState('home');
-  const [songProgress, setSongProgress] = React.useState(37);
+  const [playbackStatus, setPlaybackStatus] = React.useState(true); //Initialises the React state for the current playback status
+  const [segmentValue, setSegmentValue] = React.useState('home'); //Initialises the React state for the page which is visible
+  const [songProgress, setSongProgress] = React.useState(37); //Initialises the React state for the progress completed by the song.
 
+  //Initialises the font that we imported above
   let [fontsLoaded, fontError] = useFonts({
     Gafata_400Regular,
   });
 
+  //If no font loaded and there is no error message, do not display the app.
   if (!fontsLoaded && !fontError) {
     return null;
   }
 
+  //Home Page
   return (
     <PaperProvider>
       <ImageBackground source={bg} style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.pageTitle}>Discover</Text>
-          <SegmentedButtons
+          {/* <SegmentedButtons
             style={styles.segmentSelector}
             value={segmentValue}
             onValueChange={setSegmentValue}
@@ -66,7 +73,7 @@ export default function App() {
                 onPress: () => {console.log("Your Profile Tab")},
               },
             ]}
-          ></SegmentedButtons>
+          ></SegmentedButtons> */}
         </View>
 
         <View style={styles.songDataContainer}>
