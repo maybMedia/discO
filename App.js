@@ -103,7 +103,7 @@ export default function App() {
           </View>
 
           <View style={styles.mediaControls}>
-            <MediaControl icon={'step-backward-2'} onPress={() => console.log('Go Back')}></MediaControl>
+            <MediaControl icon={'step-backward-2'} onPress={() => setSongProgress(0)}></MediaControl>
             <MediaControl icon={playbackStatus ? 'pause' : 'play'} onPress={() => {
               playbackStatus ? setPlaybackStatus(false) : setPlaybackStatus(true)
             }}></MediaControl>
