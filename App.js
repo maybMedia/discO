@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, ImageBackground } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import { useFonts, Gafata_400Regular } from '@expo-google-fonts/gafata';
+import {AuthSession} from 'expo';
 
 //Imports for the components I made.
 import ImageViewer from './components/ImageViewer';
@@ -22,7 +23,7 @@ const bg = require('./assets/background.svg'); //Loads the background from file.
 
 //The program which is compiled and displayed by the browser or app view.
 export default function App() {
-
+  
   const [playbackStatus, setPlaybackStatus] = React.useState(true); //Initialises the React state for the current playback status
   const [segmentValue, setSegmentValue] = React.useState('home'); //Initialises the React state for the page which is visible
   const [songProgress, setSongProgress] = React.useState(37); //Initialises the React state for the progress completed by the song.
@@ -36,6 +37,8 @@ export default function App() {
   if (!fontsLoaded && !fontError) {
     return null;
   }
+
+  console.log(AuthSession.getRedirectUrl())
 
   //Home Page
   return (
