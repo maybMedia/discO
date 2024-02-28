@@ -9,6 +9,6 @@ import { IconButton } from "react-native-paper";
 export default function mediaControl({ icon, onPress }) {
     return(
         //The Icon Button component we imported. Gets the necessary icon and on press function. Animates the change of icon when a state is updated. Has a size of '40', default displaying of icon and has a colour similar to grey.
-        <IconButton icon={icon} onPress={onPress} animated='true' size={40} mode="default" color='#353535'></IconButton>
+        <IconButton icon={icon} onPress={onPress} animated='true' size={40} mode="default" color='#ffffff'></IconButton>
     );
 }

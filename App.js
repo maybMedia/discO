@@ -93,11 +93,11 @@ export default function App() {
 
           <View style={styles.statsContainer}>
             <View style={styles.infoContainer}>
-              <Icon style={styles.statsIcon} size={20} source='album'></Icon>
+              <Icon style={styles.statsIcon} color='#353535' size={20} source='album'></Icon>
               <Text style={styles.statsText}>The Dark Side Of The Moon</Text>
             </View>
             <View style={styles.infoContainer}>
-              <Icon style={styles.statsIcon} size={20} source='calendar'></Icon>
+              <Icon style={styles.statsIcon} color='#353535' size={20} source='calendar'></Icon>
               <Text style={styles.statsText}>1973</Text>
             </View>
           </View>
@@ -202,9 +202,6 @@ const styles = StyleSheet.create({
   infoContainer: {
     flexDirection: 'row',
     justifyContent: 'left',
-  },
-  statsIcon: {
-    color: '#353535',
   },
   statsText: {
     marginLeft: 4,
