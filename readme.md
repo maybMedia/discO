@@ -9,3 +9,4 @@ While discO is in early development, you'll need to clone the repository and run
 4. Run in your browser or access through the Expo Go mobile app.
 ## Acknowledgements
 - [ReactNativePaper](https://callstack.github.io/react-native-paper/)
+- [Sujan Anand](https://www.youtube.com/watch?v=mVd8XQ9Pl-0)

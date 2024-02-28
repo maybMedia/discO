@@ -7,6 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View, ImageBackground } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import { useFonts, Gafata_400Regular } from '@expo-google-fonts/gafata';
+import { Comfortaa_600SemiBold, Comfortaa_300Light } from '@expo-google-fonts/comfortaa';
 import {AuthSession} from 'expo';
 
 //Imports for the components I made.
@@ -35,6 +36,8 @@ export default function App() {
   //Initialises the font that we imported above
   let [fontsLoaded, fontError] = useFonts({
     Gafata_400Regular,
+    Comfortaa_300Light,
+    Comfortaa_600SemiBold,
   });
 
   //If no font loaded and there is no error message, do not display the app.
@@ -138,7 +141,7 @@ export default function App() {
           <Text style={styles.pageTitle}>Login</Text>
         </View>
         <View style={styles.loginContainer}>
-
+          <Text style={styles.loginP}>Connect to Spotify to get started!</Text>
         </View>
       </ImageBackground>
     </PaperProvider>
@@ -258,5 +261,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     maxHeight: 560,
     maxWidth: 340,
+  },
+  loginP: {
+    fontFamily: 'Comfortaa_300Light',
+    fontSize: 42,
+    color: '#001A4B',
+    textAlign: 'center',
+    margin: 40,
   },
 });
