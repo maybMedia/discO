@@ -21,9 +21,13 @@ import { Icon, SegmentedButtons } from 'react-native-paper';
 const albumImage = 'https://upload.wikimedia.org/wikipedia/en/3/3b/Dark_Side_of_the_Moon.png'; //Loads the placeholder album image from the web server.
 const bg = require('./assets/background.svg'); //Loads the background from file.
 
+const scopesArr = ['user-read-playback-state','user-modify-playback-state','user-read-currently-playing','streaming','app-remote-control','playlist-read-private','playlist-read-collaborative','playlist-modify-private','playlist-modify-public','user-read-playback-position','user-top-read','user-read-recently-played',];
+const scopes = scopesArr.join(' ');
+
 //The program which is compiled and displayed by the browser or app view.
 export default function App() {
   
+  const [loggedIn, setLoggedIn] = React.useState(false);
   const [playbackStatus, setPlaybackStatus] = React.useState(true); //Initialises the React state for the current playback status
   const [segmentValue, setSegmentValue] = React.useState('home'); //Initialises the React state for the page which is visible
   const [songProgress, setSongProgress] = React.useState(37); //Initialises the React state for the progress completed by the song.
@@ -38,9 +42,8 @@ export default function App() {
     return null;
   }
 
-  console.log(AuthSession.getRedirectUrl())
 
-  //Home Page
+  if (loggedIn == true){ 
   return (
     <PaperProvider>
       <ImageBackground source={bg} style={styles.container}>
@@ -128,7 +131,18 @@ export default function App() {
         <StatusBar style='auto'/>
       </ImageBackground>
     </PaperProvider>
-  );
+  );} else {return(
+    <PaperProvider>
+      <ImageBackground source={bg} style={styles.container}>
+        <View style={styles.header}>
+          <Text style={styles.pageTitle}>Login</Text>
+        </View>
+        <View style={styles.loginContainer}>
+
+        </View>
+      </ImageBackground>
+    </PaperProvider>
+  )}
 }
 
 const styles = StyleSheet.create({
@@ -235,5 +249,14 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     height: 30,
     marginLeft: 5,
+  },
+  loginContainer: {
+    height: '80%',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    width: '80%',
+    margin: 10,
+    borderRadius: 20,
+    maxHeight: 560,
+    maxWidth: 340,
   },
 });
