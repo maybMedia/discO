@@ -164,6 +164,7 @@ export default function App() {
   );} else {
     async function authenticate () {
       const config = {
+        // issuer:'https://crossorigin.me/https://accounts.spotify.com',
         issuer:'https://accounts.spotify.com',
         clientId: spotifyCredentials.clientId,
         scopes: scopesArr,
