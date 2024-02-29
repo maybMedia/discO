@@ -165,10 +165,10 @@ export default function App() {
     async function authenticate () {
       const config = {
         // issuer:'https://crossorigin.me/https://accounts.spotify.com',
-        issuer:'https://accounts.spotify.com',
+        issuer:'https://accounts.spotify.com/authorize?',
         clientId: spotifyCredentials.clientId,
         scopes: scopesArr,
-        redirectUri:"http://localhost:8081/--/spotify-auth-callback"
+        redirectUri:"http://localhost:8081/callback"
       }
       const result = await AuthSession.loadAsync(config, config.issuer);
       console.log(result);
