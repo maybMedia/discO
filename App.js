@@ -8,7 +8,8 @@ import { StyleSheet, Text, View, ImageBackground } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import { useFonts, Gafata_400Regular } from '@expo-google-fonts/gafata';
 import { Comfortaa_600SemiBold, Comfortaa_300Light } from '@expo-google-fonts/comfortaa';
-import {AuthSession} from 'expo';
+import * as AuthSession from "expo-auth-session";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //Imports for the components I made.
 import ImageViewer from './components/ImageViewer';
@@ -16,8 +17,10 @@ import PrefButton from './components/PrefButton';
 import SongProgress from './components/SongProgress';
 import MediaControl from './components/MediaButton';
 
+import { spotifyCredentials } from './secrets.js';
+
 //Import the specific components I need from the component library.
-import { Icon, SegmentedButtons } from 'react-native-paper';
+import { Icon, SegmentedButtons, Button } from 'react-native-paper';
 
 const albumImage = 'https://upload.wikimedia.org/wikipedia/en/3/3b/Dark_Side_of_the_Moon.png'; //Loads the placeholder album image from the web server.
 const bg = require('./assets/background.svg'); //Loads the background from file.
@@ -33,6 +36,29 @@ export default function App() {
   const [segmentValue, setSegmentValue] = React.useState('home'); //Initialises the React state for the page which is visible
   const [songProgress, setSongProgress] = React.useState(37); //Initialises the React state for the progress completed by the song.
 
+  React.useEffect(
+    () => {
+      const checkTokenValidity = async () => {
+        const accessToken = await AsyncStorage.getItem("token");
+        const expirationDate = await AsyncStorage.getItem("expirationDate");
+        console.log("Access token: " + accessToken);
+        console.log("Expiration date: " + expirationDate);
+        if (accessToken && expirationDate) {
+          const currentTime = Date.now();
+          if(currentTime < parseInt(expirationDate)){
+            //Here token is still valid
+            setLoggedIn(true);
+          } else {
+            //Token expired
+            AsyncStorage.removeItem("token");
+            AsyncStorage.removeItem("expirationDate");
+          }
+        }
+      }
+      checkTokenValidity();
+    }, []
+  )
+
   //Initialises the font that we imported above
   let [fontsLoaded, fontError] = useFonts({
     Gafata_400Regular,
@@ -45,6 +71,7 @@ export default function App() {
     return null;
   }
 
+  
 
   if (loggedIn == true){ 
   return (
@@ -134,14 +161,35 @@ export default function App() {
         <StatusBar style='auto'/>
       </ImageBackground>
     </PaperProvider>
-  );} else {return(
+  );} else {
+    async function authenticate () {
+      const config = {
+        issuer:'https://accounts.spotify.com',
+        clientId: spotifyCredentials.clientId,
+        scopes: scopesArr,
+        redirectUri:"http://localhost:8081/--/spotify-auth-callback"
+      }
+      const result = await AuthSession.loadAsync(config, config.issuer);
+      console.log(result);
+      if (result.accessToken){
+        const expirationDate = new Date(result.accessTokenExpirationDate).getTime();
+        AsyncStorage.setItem("token",result.accessToken);
+        AsyncStorage.setItem("expirationDate",expirationDate.toString());
+        setLoggedIn(true);
+      }
+    }
+
+    return(
     <PaperProvider>
       <ImageBackground source={bg} style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.pageTitle}>Login</Text>
         </View>
         <View style={styles.loginContainer}>
-          <Text style={styles.loginP}>Connect to Spotify to get started!</Text>
+          <Icon source='spotify' size={96} color='#001A4B'></Icon>
+          <Text style={styles.loginP}>Connect to <Text style={{color:'#1ED760', fontFamily: 'Comfortaa_600SemiBold'}}>Sp<Icon source='spotify' size={30} color='#1ED760'></Icon>tify</Text> to get started!</Text>
+          <View style={{height: 80,}}/>
+          <Button icon='spotify' mode='contained' textColor='#001A4B' buttonColor='#1ED760' onPress={authenticate} style={styles.loginButton}>Sign in with Spotify</Button>
         </View>
       </ImageBackground>
     </PaperProvider>
@@ -261,12 +309,19 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     maxHeight: 560,
     maxWidth: 340,
+    alignItems: 'center',
+    padding: 20,
   },
   loginP: {
     fontFamily: 'Comfortaa_300Light',
     fontSize: 42,
     color: '#001A4B',
     textAlign: 'center',
-    margin: 40,
+    margin: 20,
+  },
+  loginButton: {
+    width: '90%',
+    height: 42,
+    justifyContent: 'center',
   },
 });

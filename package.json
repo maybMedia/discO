@@ -21,7 +21,9 @@
     "@mui/material": "^5.15.10",
     "cocoapods": "^0.0.0",
     "expo": "~50.0.7",
+    "expo-app-auth": "^12.0.0",
     "expo-asset": "~9.0.2",
+    "expo-auth-session": "^5.4.0",
     "expo-dev-client": "~3.3.8",
     "expo-font": "~11.10.3",
     "expo-image": "~1.10.6",
@@ -37,7 +39,8 @@
     "react-native-ui-lib": "^7.16.0",
     "react-native-vector-icons": "^10.0.3",
     "react-native-web": "~0.19.6",
-    "undefined": "@expo-google-fonts/josefin+sans"
+    "undefined": "@expo-google-fonts/josefin+sans",
+    "@react-native-async-storage/async-storage": "1.21.0"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"
