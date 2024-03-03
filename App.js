@@ -8,6 +8,7 @@ import { StyleSheet, Text, View, ImageBackground } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import { useFonts, Gafata_400Regular } from '@expo-google-fonts/gafata';
 import { Comfortaa_600SemiBold, Comfortaa_300Light } from '@expo-google-fonts/comfortaa';
+import { Image } from 'expo-image';
 import * as AuthSession from "expo-auth-session";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -31,33 +32,49 @@ const scopes = scopesArr.join(' ');
 //The program which is compiled and displayed by the browser or app view.
 export default function App() {
   
+  const [accessToken, setAccessToken] = React.useState('')
+
+  const params = new URLSearchParams(window.location.search);
+  const code = params.get("code");
   const [loggedIn, setLoggedIn] = React.useState(false);
+
+  if(!code){
+    setLoggedIn(false);
+  } else {
+    const profile = fetchProfile(accessToken);
+    populateProfile(profile);
+    setLoggedIn(true);
+  }
+
+  React.useEffect(() => {
+    //API Access Token
+    var authParameters = {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: 'grant_type=client_credentials&client_id='+spotifyCredentials.clientId+'&client_secret='+spotifyCredentials.clientSecret
+    }
+    try {
+      fetch('https://accounts.spotify.com/api/token', authParameters)
+        .then(result => result.json())
+        .then(data => setAccessToken(data.access_token))
+    } catch(err) {
+      console.log('There was an error: ' + err);
+    }
+  }, [])
+
+  async function fetchProfile(token) {
+    const result = await fetch("https://api.spotify.com/v1/me", {
+        method: "GET", headers: { Authorization: `Bearer ${token}` }
+    });
+
+    return await result.json();
+  }
+
   const [playbackStatus, setPlaybackStatus] = React.useState(true); //Initialises the React state for the current playback status
   const [segmentValue, setSegmentValue] = React.useState('home'); //Initialises the React state for the page which is visible
   const [songProgress, setSongProgress] = React.useState(37); //Initialises the React state for the progress completed by the song.
-
-  React.useEffect(
-    () => {
-      const checkTokenValidity = async () => {
-        const accessToken = await AsyncStorage.getItem("token");
-        const expirationDate = await AsyncStorage.getItem("expirationDate");
-        console.log("Access token: " + accessToken);
-        console.log("Expiration date: " + expirationDate);
-        if (accessToken && expirationDate) {
-          const currentTime = Date.now();
-          if(currentTime < parseInt(expirationDate)){
-            //Here token is still valid
-            setLoggedIn(true);
-          } else {
-            //Token expired
-            AsyncStorage.removeItem("token");
-            AsyncStorage.removeItem("expirationDate");
-          }
-        }
-      }
-      checkTokenValidity();
-    }, []
-  )
 
   //Initialises the font that we imported above
   let [fontsLoaded, fontError] = useFonts({
@@ -71,7 +88,12 @@ export default function App() {
     return null;
   }
 
-  
+  function populateProfile(profile){
+    if (profile.images[0]) {
+      const profileImage = new Image(200, 200);
+      profileImage.src = profile.images[0].url;
+      document.getElementById("profile").setAttribute("source", profileImage);
+  }}
 
   if (loggedIn == true){ 
   return (
@@ -110,6 +132,7 @@ export default function App() {
               },
             ]}
           ></SegmentedButtons> */}
+          <Image source={''} id='profile' style={{width: 50, aspectRatio: 1}}></Image>
         </View>
 
         <View style={styles.songDataContainer}>
@@ -162,22 +185,48 @@ export default function App() {
       </ImageBackground>
     </PaperProvider>
   );} else {
+
+    function generateCodeVerifier(length) {
+      let text = '';
+      let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  
+      for (let i = 0; i < length; i++) {
+          text += possible.charAt(Math.floor(Math.random() * possible.length));
+      }
+      return text;
+    }
+    
+    async function generateCodeChallenge(codeVerifier) {
+        const data = new TextEncoder().encode(codeVerifier);
+        const digest = await window.crypto.subtle.digest('SHA-256', data);
+        return btoa(String.fromCharCode.apply(null, [...new Uint8Array(digest)]))
+            .replace(/\+/g, '-')
+            .replace(/\//g, '_')
+            .replace(/=+$/, '');
+    }
+
+    async function getAuth () {
+
+      const verifier = generateCodeVerifier(128);
+      const challenge = await generateCodeChallenge(verifier);
+
+      localStorage.setItem("verifier", verifier);
+
+      const params = new URLSearchParams();
+      params.append('client_id', spotifyCredentials.clientId);
+      params.append('response_type', 'code');
+      params.append("redirect_uri", "http://localhost:8081/callback");
+      params.append("scope", scopes);
+      params.append("code_challenge_method", "S256");
+      params.append("code_challenge", challenge);
+
+      document.location = `https://accounts.spotify.com/authorize?${params.toString()}`;
+    }
+
+    
+
     async function authenticate () {
-      const config = {
-        // issuer:'https://crossorigin.me/https://accounts.spotify.com',
-        issuer:'https://accounts.spotify.com/authorize?',
-        clientId: spotifyCredentials.clientId,
-        scopes: scopesArr,
-        redirectUri:"http://localhost:8081/callback"
-      }
-      const result = await AuthSession.loadAsync(config, config.issuer);
-      console.log(result);
-      if (result.accessToken){
-        const expirationDate = new Date(result.accessTokenExpirationDate).getTime();
-        AsyncStorage.setItem("token",result.accessToken);
-        AsyncStorage.setItem("expirationDate",expirationDate.toString());
-        setLoggedIn(true);
-      }
+      getAuth();
     }
 
     return(

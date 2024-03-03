@@ -2,9 +2,6 @@
 //A component which displays the image provided in the source property
 //27-02-24
 
-import { Image } from 'expo-image';
-import { StyleSheet } from 'react-native';
-
 //Importing of necessary libraries for this component
 import { Image } from 'expo-image';
 import { StyleSheet } from 'react-native';

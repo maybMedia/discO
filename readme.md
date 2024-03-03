@@ -10,3 +10,4 @@ While discO is in early development, you'll need to clone the repository and run
 ## Acknowledgements
 - [ReactNativePaper](https://callstack.github.io/react-native-paper/)
 - [Sujan Anand](https://www.youtube.com/watch?v=mVd8XQ9Pl-0)
+- [Cooper Codes](https://youtu.be/1PWDxgqLmDA)
