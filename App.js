@@ -29,6 +29,62 @@ const bg = require('./assets/background.svg'); //Loads the background from file.
 const scopesArr = ['user-read-playback-state','user-modify-playback-state','user-read-currently-playing','streaming','app-remote-control','playlist-read-private','playlist-read-collaborative','playlist-modify-private','playlist-modify-public','user-read-playback-position','user-top-read','user-read-recently-played',];
 const scopes = scopesArr.join(' ');
 
+function generateCodeVerifier(length) {
+  let text = '';
+  let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+
+  for (let i = 0; i < length; i++) {
+      text += possible.charAt(Math.floor(Math.random() * possible.length));
+  }
+  return text;
+}
+
+async function generateCodeChallenge(codeVerifier) {
+  const data = new TextEncoder().encode(codeVerifier);
+  const digest = await window.crypto.subtle.digest('SHA-256', data);
+  return btoa(String.fromCharCode.apply(null, [...new Uint8Array(digest)]))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
+}
+
+async function generateAccessToken(code) {
+  const verifier = localStorage.getItem("verifier");
+
+  const params = new URLSearchParams();
+  params.append("client_id", spotifyCredentials.clientId);
+  params.append("grant_type", "authorization_code");
+  params.append("code", code);
+  params.append("redirect_uri", "http://localhost:8081/callback");
+  params.append("code_verifier", verifier);
+
+  const result = await fetch("https://accounts.spotify.com/api/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params
+  });
+
+  const { access_token } = await result.json();
+  console.log(access_token);
+  return access_token;
+}
+
+async function getAuth () {
+  const verifier = generateCodeVerifier(128);
+  const challenge = await generateCodeChallenge(verifier);
+  localStorage.setItem("verifier", verifier);
+
+  const params = new URLSearchParams();
+  params.append('client_id', spotifyCredentials.clientId);
+  params.append('response_type', 'code');
+  params.append("redirect_uri", "http://localhost:8081/callback");
+  params.append("scope", scopes);
+  params.append("code_challenge_method", "S256");
+  params.append("code_challenge", challenge);
+
+  document.location = `https://accounts.spotify.com/authorize?${params.toString()}`;
+}
+
 //The program which is compiled and displayed by the browser or app view.
 export default function App() {
   
@@ -36,32 +92,13 @@ export default function App() {
 
   const params = new URLSearchParams(window.location.search);
   const code = params.get("code");
-  const [loggedIn, setLoggedIn] = React.useState(false);
-
-  if(!code){
-    setLoggedIn(false);
-  } else {
-    const profile = fetchProfile(accessToken);
-    populateProfile(profile);
-    setLoggedIn(true);
-  }
+  // const [loggedIn, setLoggedIn] = React.useState(false);
 
   React.useEffect(() => {
-    //API Access Token
-    var authParameters = {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: 'grant_type=client_credentials&client_id='+spotifyCredentials.clientId+'&client_secret='+spotifyCredentials.clientSecret
+    async function setToken(){
+      setAccessToken(await generateAccessToken(code));
     }
-    try {
-      fetch('https://accounts.spotify.com/api/token', authParameters)
-        .then(result => result.json())
-        .then(data => setAccessToken(data.access_token))
-    } catch(err) {
-      console.log('There was an error: ' + err);
-    }
+    setToken();
   }, [])
 
   async function fetchProfile(token) {
@@ -92,138 +129,111 @@ export default function App() {
     if (profile.images[0]) {
       const profileImage = new Image(200, 200);
       profileImage.src = profile.images[0].url;
-      document.getElementById("profile").setAttribute("source", profileImage);
+      document.getElementById("profile").setAttribute("src", profileImage.src);
   }}
 
-  if (loggedIn == true){ 
-  return (
-    <PaperProvider>
-      <ImageBackground source={bg} style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.pageTitle}>discOver</Text>
-          {/* <SegmentedButtons
-            style={styles.segmentSelector}
-            value={segmentValue}
-            onValueChange={setSegmentValue}
-            density='medium'
-            theme={{
-              colors: {
-                secondaryContainer: '#E5F1FF'
-              }
-            }}
-            buttons={[
-              // {
-              //   value:"social",
-              //   //label: "Social",
-              //   icon: "account-supervisor-circle",
-              //   onPress: () => {console.log("Social Tab")},
-              // },
-              {
-                value:"home",
-                //label: "Discover",
-                icon: "music-circle-outline",
-                onPress: () => {console.log("Discover Tab")},
-              },
-              {
-                value:"profile",
-                //label: "You",
-                icon: 'face-man-profile',
-                onPress: () => {console.log("Your Profile Tab")},
-              },
-            ]}
-          ></SegmentedButtons> */}
-          <Image source={''} id='profile' style={{width: 50, aspectRatio: 1}}></Image>
-        </View>
+  async function loadData(accessToken){
+    // setAccessToken(await generateAccessToken(code));
+    const profile = await fetchProfile(accessToken);
+    console.log(profile);
+    populateProfile(profile);
+  }
 
-        <View style={styles.songDataContainer}>
-
-          <ImageViewer imageSource={{uri: albumImage}} />
-
-          <Text id='title' style={styles.songTitle}>Money</Text>
-          <Text id='artist' style={styles.songArtist}>Pink Floyd</Text>
-
-          <View style={styles.songProgressContainer}>
-            <SongProgress style={styles.songProgress} progress={songProgress} bgColor={'rgba(255, 255, 255, 0.25)'} fillColor={'#001A4B'}></SongProgress>
-          </View>
-          <View style={styles.songProgressLabels}>
-            <Text id='songCompleted' style={styles.songProgText}>1:45</Text>
-            <Text id='songRemaining' style={styles.songProgText}>-4:38</Text>
-          </View>
-
-          <View style={styles.statsContainer}>
-            <View style={styles.infoContainer}>
-              <Icon style={styles.statsIcon} color='#353535' size={20} source='album'></Icon>
-              <Text style={styles.statsText}>The Dark Side Of The Moon</Text>
-            </View>
-            <View style={styles.infoContainer}>
-              <Icon style={styles.statsIcon} color='#353535' size={20} source='calendar'></Icon>
-              <Text style={styles.statsText}>1973</Text>
-            </View>
-          </View>
-
-          <View style={styles.mediaControls}>
-            <MediaControl icon={'step-backward-2'} onPress={() => setSongProgress(0)}></MediaControl>
-            <MediaControl icon={playbackStatus ? 'pause' : 'play'} onPress={() => {
-              playbackStatus ? setPlaybackStatus(false) : setPlaybackStatus(true)
-            }}></MediaControl>
-            <MediaControl icon={'step-backward'} onPress={() => console.log('Go to start')}></MediaControl>
-          </View>
-
-        </View>
-        
-        <View style={styles.buttonsContainer}>
-          <View style={styles.buttonsRow}>
-
-            <PrefButton start={{x: 0, y: 0}} end={{x: 1, y:1}} icon={'emoticon-sad'} onPress={() => console.log('Pressed')}></PrefButton>
-            <PrefButton start={{x: 0.5, y: 0}} end={{x: 0.5, y:1}} icon={'emoticon-neutral'} onPress={() => console.log('Pressed')}></PrefButton>
-            <PrefButton start={{x: 1, y: 0}} end={{x: 0, y:1}} icon={'emoticon-happy'} onPress={() => console.log('Pressed')}></PrefButton>
-
-          </View>
-        </View>
-
-        <StatusBar style='auto'/>
-      </ImageBackground>
-    </PaperProvider>
-  );} else {
-
-    function generateCodeVerifier(length) {
-      let text = '';
-      let possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   
-      for (let i = 0; i < length; i++) {
-          text += possible.charAt(Math.floor(Math.random() * possible.length));
-      }
-      return text;
-    }
-    
-    async function generateCodeChallenge(codeVerifier) {
-        const data = new TextEncoder().encode(codeVerifier);
-        const digest = await window.crypto.subtle.digest('SHA-256', data);
-        return btoa(String.fromCharCode.apply(null, [...new Uint8Array(digest)]))
-            .replace(/\+/g, '-')
-            .replace(/\//g, '_')
-            .replace(/=+$/, '');
-    }
 
-    async function getAuth () {
+  if (code){ 
 
-      const verifier = generateCodeVerifier(128);
-      const challenge = await generateCodeChallenge(verifier);
+    loadData(accessToken);
 
-      localStorage.setItem("verifier", verifier);
+    return (
+      <PaperProvider>
+        <ImageBackground source={bg} style={styles.container}>
+          <View style={styles.header}>
+            <Text style={styles.pageTitle}>discOver</Text>
+            {/* <SegmentedButtons
+              style={styles.segmentSelector}
+              value={segmentValue}
+              onValueChange={setSegmentValue}
+              density='medium'
+              theme={{
+                colors: {
+                  secondaryContainer: '#E5F1FF'
+                }
+              }}
+              buttons={[
+                // {
+                //   value:"social",
+                //   //label: "Social",
+                //   icon: "account-supervisor-circle",
+                //   onPress: () => {console.log("Social Tab")},
+                // },
+                {
+                  value:"home",
+                  //label: "Discover",
+                  icon: "music-circle-outline",
+                  onPress: () => {console.log("Discover Tab")},
+                },
+                {
+                  value:"profile",
+                  //label: "You",
+                  icon: 'face-man-profile',
+                  onPress: () => {console.log("Your Profile Tab")},
+                },
+              ]}
+            ></SegmentedButtons> */}
+            <img src={''} id='profile' style={{width: 50, aspectRatio: 1, borderRadius: 100, margin: 2,}}></img>
+          </View>
 
-      const params = new URLSearchParams();
-      params.append('client_id', spotifyCredentials.clientId);
-      params.append('response_type', 'code');
-      params.append("redirect_uri", "http://localhost:8081/callback");
-      params.append("scope", scopes);
-      params.append("code_challenge_method", "S256");
-      params.append("code_challenge", challenge);
+          <View style={styles.songDataContainer}>
 
-      document.location = `https://accounts.spotify.com/authorize?${params.toString()}`;
-    }
+            <ImageViewer imageSource={{uri: albumImage}} />
 
-    
+            <Text id='title' style={styles.songTitle}>Money</Text>
+            <Text id='artist' style={styles.songArtist}>Pink Floyd</Text>
+
+            <View style={styles.songProgressContainer}>
+              <SongProgress style={styles.songProgress} progress={songProgress} bgColor={'rgba(255, 255, 255, 0.25)'} fillColor={'#001A4B'}></SongProgress>
+            </View>
+            <View style={styles.songProgressLabels}>
+              <Text id='songCompleted' style={styles.songProgText}>1:45</Text>
+              <Text id='songRemaining' style={styles.songProgText}>-4:38</Text>
+            </View>
+
+            <View style={styles.statsContainer}>
+              <View style={styles.infoContainer}>
+                <Icon style={styles.statsIcon} color='#353535' size={20} source='album'></Icon>
+                <Text style={styles.statsText}>The Dark Side Of The Moon</Text>
+              </View>
+              <View style={styles.infoContainer}>
+                <Icon style={styles.statsIcon} color='#353535' size={20} source='calendar'></Icon>
+                <Text style={styles.statsText}>1973</Text>
+              </View>
+            </View>
+
+            <View style={styles.mediaControls}>
+              <MediaControl icon={'step-backward-2'} onPress={() => setSongProgress(0)}></MediaControl>
+              <MediaControl icon={playbackStatus ? 'pause' : 'play'} onPress={() => {
+                playbackStatus ? setPlaybackStatus(false) : setPlaybackStatus(true)
+              }}></MediaControl>
+              <MediaControl icon={'step-backward'} onPress={() => console.log('Go to start')}></MediaControl>
+            </View>
+
+          </View>
+          
+          <View style={styles.buttonsContainer}>
+            <View style={styles.buttonsRow}>
+
+              <PrefButton start={{x: 0, y: 0}} end={{x: 1, y:1}} icon={'emoticon-sad'} onPress={() => console.log('Pressed')}></PrefButton>
+              <PrefButton start={{x: 0.5, y: 0}} end={{x: 0.5, y:1}} icon={'emoticon-neutral'} onPress={() => console.log('Pressed')}></PrefButton>
+              <PrefButton start={{x: 1, y: 0}} end={{x: 0, y:1}} icon={'emoticon-happy'} onPress={() => console.log('Pressed')}></PrefButton>
+
+            </View>
+          </View>
+
+          <StatusBar style='auto'/>
+        </ImageBackground>
+      </PaperProvider>
+    );} else {
 
     async function authenticate () {
       getAuth();
