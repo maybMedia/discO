@@ -64,6 +64,11 @@ async function generateAccessToken(code) {
       body: params
   });
 
+  if (!result.ok) {
+    getAuth();
+    return null; // or throw an error
+  }
+
   const { access_token } = await result.json();
   console.log(access_token);
   return access_token;
@@ -95,11 +100,18 @@ export default function App() {
   // const [loggedIn, setLoggedIn] = React.useState(false);
 
   React.useEffect(() => {
-    async function setToken(){
-      setAccessToken(await generateAccessToken(code));
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get("code");
+  
+    if (code && !accessToken) {
+      async function setToken(){
+        setAccessToken(await generateAccessToken(code));
+      }
+      setToken();
+    } else if (accessToken) {
+      loadData(accessToken);
     }
-    setToken();
-  }, [])
+  }, [accessToken]);
 
   async function fetchProfile(token) {
     const result = await fetch("https://api.spotify.com/v1/me", {
@@ -142,8 +154,6 @@ export default function App() {
   
 
   if (code){ 
-
-    loadData(accessToken);
 
     return (
       <PaperProvider>
