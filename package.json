@@ -9,7 +9,7 @@
     "web": "expo start --web"
   },
   "dependencies": {
-    "@emotion/react": "^11.11.3",
+    "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
     "@expo-google-fonts/comfortaa": "^0.2.3",
     "@expo-google-fonts/gafata": "^0.2.3",
@@ -18,7 +18,10 @@
     "@fluentui/react": "^8.115.6",
     "@gluestack-style/react": "^1.0.48",
     "@gluestack-ui/themed": "^1.1.8",
-    "@mui/material": "^5.15.10",
+    "@mui/material": "^5.15.14",
+    "@react-native-async-storage/async-storage": "1.21.0",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
     "cocoapods": "^0.0.0",
     "expo": "~50.0.7",
     "expo-app-auth": "^12.0.0",
@@ -39,8 +42,9 @@
     "react-native-ui-lib": "^7.16.0",
     "react-native-vector-icons": "^10.0.3",
     "react-native-web": "~0.19.6",
-    "undefined": "@expo-google-fonts/josefin+sans",
-    "@react-native-async-storage/async-storage": "1.21.0"
+    "tailwind-merge": "^2.2.2",
+    "tailwindcss-animate": "^1.0.7",
+    "undefined": "@expo-google-fonts/josefin+sans"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0"

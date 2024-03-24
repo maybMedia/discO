@@ -23,7 +23,6 @@ import { spotifyCredentials } from './secrets.js';
 //Import the specific components I need from the component library.
 import { Icon, SegmentedButtons, Button } from 'react-native-paper';
 
-const albumImage = 'https://upload.wikimedia.org/wikipedia/en/3/3b/Dark_Side_of_the_Moon.png'; //Loads the placeholder album image from the web server.
 const bg = require('./assets/background.svg'); //Loads the background from file.
 
 const scopesArr = ['user-read-playback-state','user-modify-playback-state','user-read-currently-playing','streaming','app-remote-control','playlist-read-private','playlist-read-collaborative','playlist-modify-private','playlist-modify-public','user-read-playback-position','user-top-read','user-read-recently-played',];
@@ -121,9 +120,16 @@ export default function App() {
     return await result.json();
   }
 
-  const [playbackStatus, setPlaybackStatus] = React.useState(true); //Initialises the React state for the current playback status
+  const [topTracks, setTopTracks] = React.useState();
+  const [playbackStatus, setPlaybackStatus] = React.useState(false); //Initialises the React state for the current playback status
   const [segmentValue, setSegmentValue] = React.useState('home'); //Initialises the React state for the page which is visible
-  const [songProgress, setSongProgress] = React.useState(37); //Initialises the React state for the progress completed by the song.
+  const [songProgress, setSongProgress] = React.useState(0); //Initialises the React state for the progress completed by the song.
+  const [albumImage, setAlbumImage] = React.useState('https://upload.wikimedia.org/wikipedia/en/3/3b/Dark_Side_of_the_Moon.png'); //Loads the placeholder album image from the web server.
+  // const [volume, setVolume] = React.useState(0.5);
+  const [trackIndex, setTrackIndex] = React.useState(0);
+  const [audio, setAudio] = React.useState();
+  const [track, setTrack] = React.useState();
+
 
   //Initialises the font that we imported above
   let [fontsLoaded, fontError] = useFonts({
@@ -137,6 +143,12 @@ export default function App() {
     return null;
   }
 
+  function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.round(seconds % 60);
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+  }
+
   function populateProfile(profile){
     if (profile.images[0]) {
       const profileImage = new Image(200, 200);
@@ -144,11 +156,118 @@ export default function App() {
       document.getElementById("profile").setAttribute("src", profileImage.src);
   }}
 
+  async function getTopTracks(accessToken) {
+    const response = await fetch("https://api.spotify.com/v1/me/top/tracks", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json"
+      }
+    });
+  
+    if (!response.ok) {
+      throw new Error("Failed to fetch top tracks");
+    }
+  
+    const data = await response.json();
+    return data.items; // Assuming the API response contains an 'items' array of top tracks
+  }
+
+  // function setPlaybackVolume(volume){
+  //   if(audio){
+  //     audio.volume = volume;
+  //     setVolume(volume);
+  //   }
+  // }
+
+  function nextTrack(){
+    getTrackPreview('pauseSong', track);
+    setTrackIndex(trackIndex + 1);
+    populateSongData(topTracks, trackIndex % 20); 
+  }
+
+  function getTrackPreview(instruction, selectedTrack){
+    if (selectedTrack && selectedTrack.preview_url) {
+
+      if(instruction === 'getSong'){
+        const audio = new Audio(selectedTrack.preview_url);
+        setAudio(audio);
+        audio.volume = 0.5;
+        audio.play();
+        setPlaybackStatus(true);
+      } else if(instruction === 'pauseSong'){
+        audio.pause();
+        setPlaybackStatus(false);
+      } else if(instruction === 'playSong'){
+        audio.play();
+        setPlaybackStatus(true);
+      } else if(instruction === 'restartSong'){
+        audio.pause();
+        audio.currentTime = 0;
+        audio.play();
+      }
+      
+      audio.addEventListener('play', () => {
+        console.log('Audio is playing');
+      });
+
+      audio.addEventListener('pause', () => {
+        console.log('Audio is paused');
+      });
+
+      audio.addEventListener('ended', () => {
+        console.log('Playback ended');
+        setPlaybackStatus(false);
+      });
+
+    } else {
+      console.error("No preview available for the selected track");
+    }
+  }
+
+  async function populateSongData(topTracks, track){
+    if (!topTracks || topTracks.length === 0) {
+      console.error("No tracks found");
+    }
+
+    const selectedTrack = topTracks[track];
+    setTrack(selectedTrack);
+
+    if (!selectedTrack) {
+      console.error("No track selected");
+    }
+
+    const trackName = selectedTrack.name || "Unknown Track";
+    const artistName = selectedTrack.artists && selectedTrack.artists.length > 0 ? selectedTrack.artists[0].name : "Unknown Artist";
+    const albumName = selectedTrack.album ? selectedTrack.album.name : "Unknown Album";
+    const albumImage = selectedTrack.album && selectedTrack.album.images && selectedTrack.album.images.length > 0 ? selectedTrack.album.images[0].url : "";
+    const trackYear = selectedTrack.album.release_date ? selectedTrack.album.release_date.slice(0, 4) : "Unknown Year";
+    const trackDuration = selectedTrack.duration_ms ? formatTime(selectedTrack.duration_ms / 1000) : 0;
+
+    const songTitle = document.getElementById('title');
+    const songArtist = document.getElementById('artist');
+    const songAlbumName = document.getElementById('albumName');
+    const songYear = document.getElementById('year');
+    const songDuration = document.getElementById('duration');
+
+    songTitle.textContent = trackName;
+    songArtist.textContent = artistName;
+    songAlbumName.textContent = albumName;
+    songYear.textContent = trackYear;
+    songDuration.textContent = trackDuration;
+    setAlbumImage(albumImage);
+    getTrackPreview('getSong', selectedTrack);
+  }
+
   async function loadData(accessToken){
     // setAccessToken(await generateAccessToken(code));
     const profile = await fetchProfile(accessToken);
     console.log(profile);
+    const topTracksReq = await getTopTracks(accessToken);
+    console.log(topTracksReq);
+    setTopTracks(topTracksReq);
     populateProfile(profile);
+    populateSongData(topTracksReq, trackIndex);
   }
 
   
@@ -196,7 +315,9 @@ export default function App() {
 
           <View style={styles.songDataContainer}>
 
-            <ImageViewer imageSource={{uri: albumImage}} />
+            <ImageViewer id='album' imageSource={{uri: albumImage}} />
+            
+            {/* <input type="range" id="volumeSlider" min="0" max="1" step="0.1" defaultValue="0.5" onChange={() => {setPlaybackVolume(document.getElementById('volumeSlider').value);}}/> */}
 
             <Text id='title' style={styles.songTitle}>Money</Text>
             <Text id='artist' style={styles.songArtist}>Pink Floyd</Text>
@@ -205,27 +326,27 @@ export default function App() {
               <SongProgress style={styles.songProgress} progress={songProgress} bgColor={'rgba(255, 255, 255, 0.25)'} fillColor={'#001A4B'}></SongProgress>
             </View>
             <View style={styles.songProgressLabels}>
-              <Text id='songCompleted' style={styles.songProgText}>1:45</Text>
-              <Text id='songRemaining' style={styles.songProgText}>-4:38</Text>
+              <Text id='songCompleted' style={styles.songProgText}>0:00</Text>
+              <Text id='duration' style={styles.songProgText}>6:24</Text>
             </View>
 
             <View style={styles.statsContainer}>
               <View style={styles.infoContainer}>
                 <Icon style={styles.statsIcon} color='#353535' size={20} source='album'></Icon>
-                <Text style={styles.statsText}>The Dark Side Of The Moon</Text>
+                <Text id='albumName' style={styles.statsText}>The Dark Side Of The Moon</Text>
               </View>
               <View style={styles.infoContainer}>
                 <Icon style={styles.statsIcon} color='#353535' size={20} source='calendar'></Icon>
-                <Text style={styles.statsText}>1973</Text>
+                <Text id='year' style={styles.statsText}>1973</Text>
               </View>
             </View>
 
             <View style={styles.mediaControls}>
-              <MediaControl icon={'step-backward-2'} onPress={() => setSongProgress(0)}></MediaControl>
+              <MediaControl icon={'step-backward-2'} onPress={() => getTrackPreview('restartSong', track)}></MediaControl>
               <MediaControl icon={playbackStatus ? 'pause' : 'play'} onPress={() => {
-                playbackStatus ? setPlaybackStatus(false) : setPlaybackStatus(true)
+                playbackStatus ? getTrackPreview('pauseSong', track) : getTrackPreview('playSong', track)
               }}></MediaControl>
-              <MediaControl icon={'step-backward'} onPress={() => console.log('Go to start')}></MediaControl>
+              <MediaControl icon={'step-forward'} onPress={() => nextTrack()}></MediaControl>
             </View>
 
           </View>
@@ -300,23 +421,33 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   songTitle: {
+    width: '98%',
+    textAlign: 'center',
     fontFamily: 'Gafata_400Regular',
     fontSize: 28,
     letterSpacing: 1,
     color: '#001A4B',
     padding: 5,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   },
   songArtist: {
+    width: '98%',
+    textAlign: 'center',
     fontFamily: 'Gafata_400Regular',
     fontSize: 20,
     letterSpacing: 0,
     color: '#353535',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   },
   songProgressContainer: {
     marginHorizontal: 'auto',
     marginTop: 20,
     marginBottom: 5,
-    height: 4,
+    height: 2,
     width: '90%',
   },
   songProgress: {
