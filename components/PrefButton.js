@@ -16,7 +16,7 @@ export default function PrefButton({ start, end, icon, onPress}) {
               end={end}
               style={styles.buttonBg}>
               <IconButton icon={icon} iconColor='white' size={60} onPress={onPress} style={{
-                // // backgroundColor: '#566279',
+                // backgroundColor: '#566279',
                 // borderRadius: 100,
               }}></IconButton>
             </LinearGradient>
