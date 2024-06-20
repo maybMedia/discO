@@ -10,6 +10,7 @@ import { PaperProvider } from 'react-native-paper';
 import { useFonts, Gafata_400Regular } from '@expo-google-fonts/gafata';
 import { Comfortaa_600SemiBold, Comfortaa_300Light } from '@expo-google-fonts/comfortaa';
 import { Image } from 'expo-image';
+import axios from 'axios';
 import * as AuthSession from "expo-auth-session";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -135,7 +136,7 @@ export default function App() {
   }
 
   //Defining of several 'states'. When these values are updated, the components involved are rerendered.
-  const [topTracks, setTopTracks] = React.useState();
+  const [recommendedTracks, setRecommendedTracks] = React.useState();
   const [playbackStatus, setPlaybackStatus] = React.useState(false); //Initialises the React state for the current playback status
   const [segmentValue, setSegmentValue] = React.useState('home'); //Initialises the React state for the page which is visible
   const [songProgress, setSongProgress] = React.useState(0); //Initialises the React state for the progress completed by the song.
@@ -173,9 +174,28 @@ export default function App() {
       document.getElementById("profile").setAttribute("src", profileImage.src);
   }}
 
+async function getTopTrack(accessToken){
+  const response = await fetch(`https://api.spotify.com/v1/me/top/tracks?time_range=short_term`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch top tracks");
+  }
+
+  const data = await response.json();
+  console.log(data.items);
+  console.log("Top Track:" + data.items[0].id);
+  return data.items[0].id;
+}
+
   //Makes an API request for the users top tracks and returns the data as a JSON file.
-  async function getTopTracks(accessToken) {
-    const response = await fetch("https://api.spotify.com/v1/me/top/tracks", {
+  async function getRecommendedTracks(accessToken) {
+    const response = await fetch(`https://api.spotify.com/v1/recommendations?seed_tracks=${await getTopTrack(accessToken)}`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -184,11 +204,12 @@ export default function App() {
     });
   
     if (!response.ok) {
-      throw new Error("Failed to fetch top tracks");
+      throw new Error("Failed to fetch recommended tracks");
     }
   
     const data = await response.json();
-    return data.items; // Assuming the API response contains an 'items' array of top tracks
+    console.log(data.tracks);
+    return data.tracks; // Assuming the API response contains an 'items' array of top tracks
   }
 
   // function setPlaybackVolume(volume){
@@ -199,11 +220,11 @@ export default function App() {
   // }
 
   //Skips the currently playing track.
-  //Pauses the currently playing track, then increases the index of the track from the topTracks json file. Then repopulates the song data with the new index.
+  //Pauses the currently playing track, then increases the index of the track from the recTracks json file. Then repopulates the song data with the new index.
   function nextTrack(){
     getTrackPreview('pauseSong', track);
     setTrackIndex(trackIndex + 1);
-    populateSongData(topTracks, trackIndex % 20); 
+    populateSongData(recTracks, trackIndex % 20); 
   }
 
   //A function which takes in two parameters, an instruction and a track. It first checks if the selected track exists and if it has a preview url. Depending on the instruction, it either plays the song, pauses the song or restarts the song. 
@@ -247,12 +268,16 @@ export default function App() {
   }
 
   //Takes in the array of tracks and the index of a track. Gets the track from the array based on the index and pulls all necessary data about the track. It then populates the data fields with the pulled data and plays the track preview audio.
-  async function populateSongData(topTracks, track){
-    if (!topTracks || topTracks.length === 0) {
+  async function populateSongData(recTracks, track){
+    recTracks = recTracks.items;
+
+    //Find what rec tracks is actually outputting.
+
+    if (!recTracks || recTracks.length === 0) {
       console.error("No tracks found");
     }
 
-    const selectedTrack = topTracks[track];
+    const selectedTrack = recTracks[track];
     setTrack(selectedTrack);
 
     if (!selectedTrack) {
@@ -286,11 +311,10 @@ export default function App() {
     // setAccessToken(await generateAccessToken(code));
     const profile = await fetchProfile(accessToken);
     console.log(profile);
-    const topTracksReq = await getTopTracks(accessToken);
-    console.log(topTracksReq);
-    setTopTracks(topTracksReq);
+    const recTracksReq = await getRecommendedTracks(accessToken);
+    setRecommendedTracks(recTracksReq);
     populateProfile(profile);
-    populateSongData(topTracksReq, trackIndex);
+    populateSongData(recommendedTracks, trackIndex);
   }
 
   
