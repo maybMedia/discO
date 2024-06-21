@@ -213,7 +213,7 @@ async function getTopTrack(accessToken){
   const data = await response.json();
   console.log(data.items);
   console.log("Top Track:" + data.items[0].id);
-  return data.items[0].id;
+  return data.items[0].id + ',' + data.items[1].id + ',' + data.items[2].id;
 }
 
   //Makes an API request for the users top tracks and returns the data as a JSON file.
