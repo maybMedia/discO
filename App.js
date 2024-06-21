@@ -10,6 +10,7 @@ import { PaperProvider } from 'react-native-paper';
 import { useFonts, Gafata_400Regular } from '@expo-google-fonts/gafata';
 import { Comfortaa_600SemiBold, Comfortaa_300Light } from '@expo-google-fonts/comfortaa';
 import { Image } from 'expo-image';
+import Toast from 'react-native-toast-message';
 import axios from 'axios';
 import * as AuthSession from "expo-auth-session";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -22,6 +23,7 @@ import MediaControl from './components/MediaButton';
 
 //Imports the spotify credentials necessary for interaction with the API
 import { spotifyCredentials } from './secrets.js';
+import { playlistCover } from './playlistCover.js';
 
 //Import the specific components I need from the component library.
 import { Icon, SegmentedButtons, Button } from 'react-native-paper';
@@ -29,7 +31,7 @@ import { Icon, SegmentedButtons, Button } from 'react-native-paper';
 const bg = require('./assets/background.svg'); //Loads the background from file.
 
 //Gets the scopes for the Spotify API and concatenates them so they can be passed into the Access Token request.
-const scopesArr = ['user-read-playback-state','user-modify-playback-state','user-read-currently-playing','streaming','app-remote-control','playlist-read-private','playlist-read-collaborative','playlist-modify-private','playlist-modify-public','user-read-playback-position','user-top-read','user-read-recently-played',];
+const scopesArr = ['user-read-playback-state','user-modify-playback-state','user-read-currently-playing','streaming','app-remote-control','playlist-read-private','playlist-read-collaborative','playlist-modify-private','playlist-modify-public','user-read-playback-position','user-top-read','user-read-recently-played', 'ugc-image-upload',];
 const scopes = scopesArr.join(' ');
 
 
@@ -126,6 +128,26 @@ export default function App() {
     }
   }, [accessToken]); //Runs whenever the access token changes.
 
+  function truncateString(string, length){
+    return string.slice(0, length-1) + '...';
+  }
+
+  const addedSongToast = (songTitle) => {
+    Toast.show({
+      type: 'success',
+      text1: `Added ${songTitle} to the disc0 playlist!`,
+      text2: 'Sounds groovy!'
+    });
+  }
+
+  const previewAudioErrorToast = (songTitle) => {
+    Toast.show({
+      type: 'error',
+      text1: `'${truncateString(songTitle, 16)}' doesn't have a preview available!`,
+      text2: 'Skip to the next song, or try again later!'
+    });
+  }
+
   //A function which retrieves the user profile from the Spotify API. Returns the data as a JSON file.
   async function fetchProfile(token) {
     const result = await fetch("https://api.spotify.com/v1/me", {
@@ -137,6 +159,7 @@ export default function App() {
 
   //Defining of several 'states'. When these values are updated, the components involved are rerendered.
   const [recommendedTracks, setRecommendedTracks] = React.useState();
+  const [Profile, setProfile] = React.useState();
   const [playbackStatus, setPlaybackStatus] = React.useState(false); //Initialises the React state for the current playback status
   const [segmentValue, setSegmentValue] = React.useState('home'); //Initialises the React state for the page which is visible
   const [songProgress, setSongProgress] = React.useState(0); //Initialises the React state for the progress completed by the song.
@@ -209,7 +232,7 @@ async function getTopTrack(accessToken){
   
     const data = await response.json();
     console.log(data.tracks);
-    return data.tracks; // Assuming the API response contains an 'items' array of top tracks
+    return data.tracks; // Assuming the API response contains a 'tracks' array of recommended tracks
   }
 
   // function setPlaybackVolume(volume){
@@ -221,14 +244,18 @@ async function getTopTrack(accessToken){
 
   //Skips the currently playing track.
   //Pauses the currently playing track, then increases the index of the track from the recTracks json file. Then repopulates the song data with the new index.
-  function nextTrack(){
+  async function nextTrack(accessToken){
     getTrackPreview('pauseSong', track);
     setTrackIndex(trackIndex + 1);
-    populateSongData(recTracks, trackIndex % 20); 
+    populateSongData(recommendedTracks, trackIndex % 20); 
+    if (trackIndex >= 20) {
+      setRecommendedTracks(await getRecommendedTracks(accessToken), trackIndex);
+      setTrackIndex(0);
+    }
   }
 
   //A function which takes in two parameters, an instruction and a track. It first checks if the selected track exists and if it has a preview url. Depending on the instruction, it either plays the song, pauses the song or restarts the song. 
-  function getTrackPreview(instruction, selectedTrack){
+  function getTrackPreview(instruction, selectedTrack, accessToken){
     if (selectedTrack && selectedTrack.preview_url) {
 
       if(instruction === 'getSong'){
@@ -264,15 +291,14 @@ async function getTopTrack(accessToken){
 
     } else {
       console.error("No preview available for the selected track");
+      if (instruction === 'play' || instruction === 'getSong'){
+        previewAudioErrorToast(selectedTrack.name);
+      }
     }
   }
 
   //Takes in the array of tracks and the index of a track. Gets the track from the array based on the index and pulls all necessary data about the track. It then populates the data fields with the pulled data and plays the track preview audio.
   async function populateSongData(recTracks, track){
-    recTracks = recTracks.items;
-
-    //Find what rec tracks is actually outputting.
-
     if (!recTracks || recTracks.length === 0) {
       console.error("No tracks found");
     }
@@ -303,18 +329,109 @@ async function getTopTrack(accessToken){
     songYear.textContent = trackYear;
     songDuration.textContent = trackDuration;
     setAlbumImage(albumImage);
-    getTrackPreview('getSong', selectedTrack);
+    getTrackPreview('getSong', selectedTrack, accessToken);
   }
 
   //A function which takes in the accessToken. It gets the users profile, gets the users top tracks and populates the profile and top tracks fields with the pulled data.
   async function loadData(accessToken){
     // setAccessToken(await generateAccessToken(code));
     const profile = await fetchProfile(accessToken);
+    setProfile(profile);
     console.log(profile);
     const recTracksReq = await getRecommendedTracks(accessToken);
+    console.log(recTracksReq);
     setRecommendedTracks(recTracksReq);
+    console.log("recommendedTracks: " + recommendedTracks);
     populateProfile(profile);
-    populateSongData(recommendedTracks, trackIndex);
+    populateSongData(recTracksReq, trackIndex);
+  }
+
+  async function likeSong(accessToken, trackUri, profile, songTitle){
+    const playlistResponse = await fetch(`https://api.spotify.com/v1/me/playlists`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json"
+      }
+    });
+  
+    if (!playlistResponse.ok) {
+      throw new Error("Failed to fetch top playlists!");
+    }
+  
+    
+    const playlistsResponse = await playlistResponse.json();
+    const playlists = playlistsResponse.items;
+
+    console.log(playlists);
+
+    let playlistId;
+    for (const playlist of playlists){
+      if (playlist.name === 'disc0'){
+        playlistId = playlist.id;
+        console.log("Fount it! (The disc0 Playlist)")
+      }
+    }
+    console.log('Playlist ID: ' + playlistId);
+
+    if (!playlistId) {
+        
+        const response = await fetch(`https://api.spotify.com/v1/users/${profile.id}/playlists`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            "name": "disc0",
+            "description": "A playlist curated by disc0!",
+            "public": false
+          })
+        });
+  
+        if (!response.ok) {
+          throw new Error("Could not create playlist!");
+        }
+
+        const responseData = await response.json();
+
+        console.log('Created playlist');
+        console.log(responseData);
+        playlistId = responseData.id;
+
+        await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/images`, {
+          method: 'PUT',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "image/jpeg",
+          },
+          body: playlistCover.encoded,
+        });
+
+    }
+
+    console.log(trackUri);
+
+    const addResponse = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        "uris": [trackUri],
+        "position": 0
+      },)
+    });
+
+    if (!addResponse.ok) {
+      throw new Error("Could not add track to playlist!");
+    }
+
+    console.log(addResponse);
+    addedSongToast(songTitle);
+    nextTrack(accessToken);
+    return addResponse;
   }
 
   
@@ -394,7 +511,7 @@ async function getTopTrack(accessToken){
               <MediaControl icon={playbackStatus ? 'pause' : 'play'} onPress={() => {
                 playbackStatus ? getTrackPreview('pauseSong', track) : getTrackPreview('playSong', track)
               }}></MediaControl>
-              <MediaControl icon={'step-forward'} onPress={() => nextTrack()}></MediaControl>
+              <MediaControl icon={'step-forward'} onPress={() => nextTrack(accessToken)}></MediaControl>
             </View>
 
           </View>
@@ -402,15 +519,16 @@ async function getTopTrack(accessToken){
           <View style={styles.buttonsContainer}>
             <View style={styles.buttonsRow}>
 
-              <PrefButton start={{x: 0, y: 0}} end={{x: 1, y:1}} icon={'emoticon-sad'} onPress={() => console.log('Pressed')}></PrefButton>
-              <PrefButton start={{x: 0.5, y: 0}} end={{x: 0.5, y:1}} icon={'emoticon-neutral'} onPress={() => console.log('Pressed')}></PrefButton>
-              <PrefButton start={{x: 1, y: 0}} end={{x: 0, y:1}} icon={'emoticon-happy'} onPress={() => console.log('Pressed')}></PrefButton>
+              <PrefButton start={{x: 0, y: 0}} end={{x: 1, y:1}} icon={'emoticon-sad'} onPress={() => nextTrack(accessToken)}></PrefButton>
+              {/* <PrefButton start={{x: 0.5, y: 0}} end={{x: 0.5, y:1}} icon={'emoticon-neutral'} onPress={() => console.log('Pressed')}></PrefButton> */}
+              <PrefButton start={{x: 1, y: 0}} end={{x: 0, y:1}} icon={'emoticon-happy'} onPress={() => likeSong(accessToken, track.uri, Profile, track.name)}></PrefButton>
 
             </View>
           </View>
 
           <StatusBar style='auto'/>
         </ImageBackground>
+        <Toast />
       </PaperProvider>
     );} else {
 
@@ -528,6 +646,10 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontFamily: 'Gafata_400Regular',
     fontSize: 16,
+    width: '98%',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   },
   mediaControls: {
     flexDirection: 'row',
@@ -577,4 +699,5 @@ const styles = StyleSheet.create({
     height: 42,
     justifyContent: 'center',
   },
+  
 });
