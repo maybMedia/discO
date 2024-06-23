@@ -128,10 +128,12 @@ export default function App() {
     }
   }, [accessToken]); //Runs whenever the access token changes.
 
+  //Slices the givem string at the given length and adds an elipse to the end.
   function truncateString(string, length){
     return string.slice(0, length-1) + '...';
   }
 
+  //A 'toast' to provide the user with feedback when a song is added to the disc0 playlist.
   const addedSongToast = (songTitle) => {
     Toast.show({
       type: 'success',
@@ -140,6 +142,7 @@ export default function App() {
     });
   }
 
+  //A 'toast' to provide the user with feedback when there is an error with the preview audio of the song.
   const previewAudioErrorToast = (songTitle) => {
     Toast.show({
       type: 'error',
@@ -168,6 +171,7 @@ export default function App() {
   const [trackIndex, setTrackIndex] = React.useState(0);
   const [audio, setAudio] = React.useState();
   const [track, setTrack] = React.useState();
+  const [Disc0PlaylistList, setDisc0PlaylistList] = React.useState();
 
 
   //Initialises the font that we imported above
@@ -197,6 +201,10 @@ export default function App() {
       document.getElementById("profile").setAttribute("src", profileImage.src);
   }}
 
+//An asynchronous function that fetches the top tracks from the Spotify API from the authenticated user. Using the fetch fucntion to send a 'GET' request to the spotify API with the accessToken as an authorization header.
+//The time range parameter is set to 'short_term' which returns the top tracks from the last 4 weeks.
+//If the response is not 'ok' it throws the error to the browser console.
+//If it is successful it parse the response as JSON and logs it to the console and returns the ID's of the top three tracks.
 async function getTopTrack(accessToken){
   const response = await fetch(`https://api.spotify.com/v1/me/top/tracks?time_range=short_term`, {
     method: 'GET',
@@ -216,7 +224,9 @@ async function getTopTrack(accessToken){
   return data.items[0].id + ',' + data.items[1].id + ',' + data.items[2].id;
 }
 
-  //Makes an API request for the users top tracks and returns the data as a JSON file.
+  //Fetches recommended tracks from the Spotify API. Given the accessToken, it will send a 'GET' request to the spotify API with the accessToken as an authorization header.
+  //The request is sent with the track ID of three tracks to be used as 'seed' tracks, it will analyse them musically and compare with other spotify users listening to recommend new songs based on these tracks.
+  //The response is parsed into a JSON form and the tracks are logged to the console and returned.
   async function getRecommendedTracks(accessToken) {
     const response = await fetch(`https://api.spotify.com/v1/recommendations?seed_tracks=${await getTopTrack(accessToken)}`, {
       method: "GET",
@@ -346,7 +356,11 @@ async function getTopTrack(accessToken){
     populateSongData(recTracksReq, trackIndex);
   }
 
-  async function likeSong(accessToken, trackUri, profile, songTitle){
+  //This function fetches a users playlist with the name 'disc0'. If it doesn't exist, it creates one.
+  //It sends a "GET" request tot he Spotify API for all the users playlists. If it is successful it parses the response into JSON form and loops through each till it finds one with the name 'disc0'.
+  //If it doesn't find it it creates one with the name 'disc0' and returns the id of the playlist.
+  //Additionally, upon the creation of the playlist, it updates the playlists image with the base64 encoded JPEG given.
+  async function fetchDisc0Playlist(accessToken, profile, ){
     const playlistResponse = await fetch(`https://api.spotify.com/v1/me/playlists`, {
       method: 'GET',
       headers: {
@@ -410,6 +424,40 @@ async function getTopTrack(accessToken){
 
     }
 
+    return playlistId;
+  }
+
+  //This function remains unused. Though it does function.
+  //Using the Spotify API, it sends a 'GET' request for the songs found in the 'disc0' playlist. It takes in the accessToken and profile as parameters.
+  //It gets the 'disc0' playlist ID using the above function and then sends the 'GET' request. The response is then parsed as JSON and logged to the console. Additionally, the 'items' array is returned.
+  async function getDisc0Songs(accessToken, profile){
+    let playlistId = await fetchDisc0Playlist(accessToken, profile);
+
+    const response = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks?limit=50`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      }
+    });
+
+    if (!response.ok){
+      throw new Error("Could not get songs from the disc0 playlist!");
+    }
+
+    const responseData = await response.json();
+    console.log(responseData.items);
+    return responseData.items;
+  }
+
+  //This function adds the selected song to the disc0 playlist.
+  //It takes in the accessToken, trackUri, the users profile and the title of the song. The title of the song is only required for the user feedback.
+  //First the above function is used to get the 'disc0' playlist ID. Then a 'POST' request is sent to the Spotify API with the track URI and the position of the track in the playlist. The response is then parsed as JSON and logged to the console.
+  //The track is then skipped and the user is provided with a 'toast' to signify the process was successful.
+  async function likeSong(accessToken, trackUri, profile, songTitle){
+
+    let playlistId = await fetchDisc0Playlist(accessToken, profile)
+
     console.log(trackUri);
 
     const addResponse = await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
@@ -434,6 +482,27 @@ async function getTopTrack(accessToken){
     return addResponse;
   }
 
+  //
+  //UNFINISHED
+  //This function was intended to fill the 'disc0PlaylistList' with the songs from the disc0 playlist.
+  //Currently loops infinitely without fulfilling the array
+
+  // getDisc0Songs(accessToken, Profile)
+  // .then((disc0Playlist) => {
+  // const list = disc0Playlist.map((track) => (
+  //   <li style={styles.playlistItem}>
+  //     <img src={track.album?.images?.[0]?.url} style={styles.playlistAlbumImage}/>
+  //     <View style={styles.playlistItemText}>
+  //       <Text style={styles.playlistTrackTitle}>{track.name}</Text>
+  //       <Text style={styles.playlistArtistName}>{track.artists}</Text>
+  //     </View>
+  //   </li>
+  // ));
+  // setDisc0PlaylistList(list);
+  // })
+  // .catch((error) => {
+  //   console.error(error);
+  // });
   
   //If the user is logged in, the code parameter will be set and the app will load. If not, the user will be prompted to log in.
   if (code){ 
@@ -525,6 +594,19 @@ async function getTopTrack(accessToken){
 
             </View>
           </View>
+
+          {/* <View style={styles.playlistContainer}>
+            <Text style={styles.playlistTitle}>Your disc0veries</Text>
+          
+            <View style={styles.disc0Playlist}>
+              
+              
+
+              <ul style={styles.playlistList}>
+                {Disc0PlaylistList}
+              </ul>
+            </View>
+          </View> */}
 
           <StatusBar style='auto'/>
         </ImageBackground>
@@ -699,5 +781,67 @@ const styles = StyleSheet.create({
     height: 42,
     justifyContent: 'center',
   },
-  
+  disc0Playlist: {
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: 20,
+    height: '100%',
+    width: '98%',
+  },
+  playlistContainer: {
+    position: 'absolute',
+    right: '10%',
+    flex: 1,
+    height: '91%',
+    maxHeight: 1440,
+    width: '90%',
+    maxWidth: 340,
+    padding: 10,
+    alignItems: 'center',
+  },
+  playlistTitle: {
+    alignContent: 'left',
+    fontFamily: 'Gafata_400Regular',
+    fontSize: 28,
+    color: '#ffffff',
+    textAlign: 'left',
+    width: '100%',
+    paddingBottom: 10,
+  },
+  playlistList: {
+    width: '90%',
+    height: '98%',
+    overflow: 'hidden',    
+    listStyle: 'none',
+    alignItems: 'center',
+  },
+  playlistItem: {
+    width: '90%',
+    height: 100,
+    display: 'flex',
+  },
+  playlistAlbumImage: {
+    width: 80,
+    height: 80,
+    paddingRight: 10,
+  },
+  playlistItemText: {
+    display: 'flex',
+    flexDirection: 'column',
+    width: '98%',
+    textAlign: 'left',
+    fontFamily: 'Gafata_400Regular',
+    letterSpacing: 1,
+    paddingTop: 10,
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  playlistTrackTitle: {
+    fontSize: 22,
+    color: '#001A4B',
+  },
+  playlistArtistName: {
+    fontSize: 18,
+    color: '#353535',
+  },
 });
