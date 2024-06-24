@@ -1,6 +1,6 @@
 //bMay
 //The main page for the discO song preference generator app. Provides users with an interface between their listening habits and the songs they want to listen to and discover by feeding them with potentially enjoyable songs for their taste.
-//26/03/24
+//26/06/24
 
 //The imported libraries used are below. This includes the built in libraries from React and Expo, along with the component library I used and the font.
 import * as React from 'react';
